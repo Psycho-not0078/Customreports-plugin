@@ -34,18 +34,38 @@ $Title="Exam Time Report";
 $PAGE->requires->css("/report/customreports/css/bootstrap.min.css",true);
 $main_sql='SELECT
                     q.id as id,
-                    (
+                (
+                SELECT
+                    CONCAT(
+                        (
                         SELECT
-                            COUNT(*)
+                            COUNT(*) AS c
                         FROM
                             {user} u1
                         INNER JOIN {role_assignments} ra1 ON
                             ra1.userid = u1.id
                         INNER JOIN {context} co1 ON
                             co1.id = ra1.contextid
+                        INNER JOIN {quiz_attempts} qa1 ON
+                            qa1.userid = u1.id
                         WHERE
-                            co1.instanceid = cc.id AND ra1.roleid = 5
-                    ) AS Number_Enrolled,
+                            co1.instanceid = cc.id AND ra1.roleid = 5 AND qa1.quiz=q.id
+                    ),
+                    "/",
+                    (
+                    SELECT
+                        COUNT(*) AS c
+                    FROM
+                        {user} u1
+                    INNER JOIN {role_assignments} ra1 ON
+                        ra1.userid = u1.id
+                    INNER JOIN {context} co1 ON
+                        co1.id = ra1.contextid
+                    WHERE
+                        co1.instanceid = cc.id AND ra1.roleid = 5
+                )
+                    )
+            ) AS Attempt_Counts,
                     FROM_UNIXTIME(q.timeopen) AS Timestamp_Of_Exam_open,
                     FROM_UNIXTIME(q.timeclose) AS Timestamp_Of_Exam_close,
                     -- TIMESTAMPDIFF(
@@ -53,7 +73,7 @@ $main_sql='SELECT
                     --     FROM_UNIXTIME(q.timeopen),
                     --     FROM_UNIXTIME(q.timeclose)
                     -- ) AS Duration_in_minutes,
-                    q.timelimit/60 AS Time_limit_In_Minutes,
+                    ROUND(q.timelimit/60,2) AS Time_limit_In_Minutes,
                     (
                         SELECT
                             COUNT(*)
@@ -65,14 +85,16 @@ $main_sql='SELECT
                     q.grade AS Max_Marks,
                     (
                         SELECT
-                            MIN(
-                                ABS(
-                                    TIMESTAMPDIFF(
-                                        MINUTE,
-                                        FROM_UNIXTIME(qa1.timefinish),
-                                        FROM_UNIXTIME(qa1.timestart)
+                            ROUND(
+                                MIN(
+                                    ABS(
+                                        TIMESTAMPDIFF(
+                                            MINUTE,
+                                            FROM_UNIXTIME(qa1.timefinish),
+                                            FROM_UNIXTIME(qa1.timestart)
+                                        )
                                     )
-                                )
+                                ),2
                             )
                         FROM
                             {quiz_attempts} qa1
@@ -81,14 +103,16 @@ $main_sql='SELECT
                     ) AS Min_Attempt_Duration_In_Minutes,
                     (
                         SELECT
-                            AVG(
-                                ABS(
-                                    TIMESTAMPDIFF(
-                                        MINUTE,
-                                        FROM_UNIXTIME(qa1.timefinish),
-                                        FROM_UNIXTIME(qa1.timestart)
+                            ROUND(
+                                AVG(
+                                    ABS(
+                                        TIMESTAMPDIFF(
+                                            MINUTE,
+                                            FROM_UNIXTIME(qa1.timefinish),
+                                            FROM_UNIXTIME(qa1.timestart)
+                                        )
                                     )
-                                )
+                                ),2
                             )
                         FROM
                             {quiz_attempts} qa1
@@ -97,14 +121,16 @@ $main_sql='SELECT
                     ) AS Avg_Attempt_Duration_In_Minutes,
                     (
                         SELECT
-                            MAX(
-                                ABS(
-                                    TIMESTAMPDIFF(
-                                        MINUTE,
-                                        FROM_UNIXTIME(qa1.timefinish),
-                                        FROM_UNIXTIME(qa1.timestart)
+                            ROUND(
+                                MAX(
+                                    ABS(
+                                        TIMESTAMPDIFF(
+                                            MINUTE,
+                                            FROM_UNIXTIME(qa1.timefinish),
+                                            FROM_UNIXTIME(qa1.timestart)
+                                        )
                                     )
-                                )
+                                ),2
                             )
                         FROM
                             {quiz_attempts} qa1
