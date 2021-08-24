@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
+/*
+ *
  * 
  *
  * @package    report
@@ -65,10 +66,12 @@ $main_sql='SELECT
                     (
                         SELECT
                             MIN(
-                                TIMESTAMPDIFF(
-                                    MINUTE,
-                                    FROM_UNIXTIME(qa1.timefinish),
-                                    FROM_UNIXTIME(qa1.timestart)
+                                ABS(
+                                    TIMESTAMPDIFF(
+                                        MINUTE,
+                                        FROM_UNIXTIME(qa1.timefinish),
+                                        FROM_UNIXTIME(qa1.timestart)
+                                    )
                                 )
                             )
                         FROM
@@ -79,10 +82,12 @@ $main_sql='SELECT
                     (
                         SELECT
                             AVG(
-                                TIMESTAMPDIFF(
-                                    MINUTE,
-                                    FROM_UNIXTIME(qa1.timefinish),
-                                    FROM_UNIXTIME(qa1.timestart)
+                                ABS(
+                                    TIMESTAMPDIFF(
+                                        MINUTE,
+                                        FROM_UNIXTIME(qa1.timefinish),
+                                        FROM_UNIXTIME(qa1.timestart)
+                                    )
                                 )
                             )
                         FROM
@@ -93,10 +98,12 @@ $main_sql='SELECT
                     (
                         SELECT
                             MAX(
-                                TIMESTAMPDIFF(
-                                    MINUTE,
-                                    FROM_UNIXTIME(qa1.timefinish),
-                                    FROM_UNIXTIME(qa1.timestart)
+                                ABS(
+                                    TIMESTAMPDIFF(
+                                        MINUTE,
+                                        FROM_UNIXTIME(qa1.timefinish),
+                                        FROM_UNIXTIME(qa1.timestart)
+                                    )
                                 )
                             )
                         FROM

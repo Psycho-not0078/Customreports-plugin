@@ -30,8 +30,9 @@ require_once __DIR__ . '/classes/report_customreports_filter_form.php';
 admin_externalpage_setup('reportcustomreports','', null, '', array('pagelayout' => 'report'));
 // echo 
 $Title="Exam Progress Report";
+
 $main_sql='SELECT
-    u.id as id
+    u.id as id,
     u.idnumber AS EnrollmentNo,
     CONCAT(u.firstname, " ", u.lastname) AS NAME,
     u.email AS Email

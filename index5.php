@@ -29,51 +29,38 @@ require_once __DIR__ . '/classes/report_customreports_filter_form.php';
 
 admin_externalpage_setup('reportcustomreports','', null, '', array('pagelayout' => 'report'));
 $main_sql='SELECT 
-                q.id as id,
+                q.id as q,
                 q.sumgrades as Total_Marks,
-                q.grade as Max_Marks,
-                (
+                q.grade as Max_Marks,';
+// echo 
+
+$qtype_sql='Select DISTINCT qtype as type FROM {question}';
+$qtypes=$DB->get_records_sql($qtype_sql);
+
+echo gettype($qtypes);
+foreach ($qtypes as $key => $value) {
+    if ($key!='random'){
+    $main_sql.="(
                     SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND qe.qtype="essay"
-                ) AS Subjective_Marks,
-                (
+                    FROM {question} qe INNER JOIN {quiz_slots} qs on qs.questionid=qe.id
+                    WHERE qs.quizid=q.id AND qe.qtype='".$key."'
+                ) AS ".$key."_Type_Questions_Marks,";
+    }
+    else{
+    $main_sql.="(
                     SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND qe.qtype="multichoice"
-                ) AS Objective_Marks,
-                (
-                    SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND qe.qtype="order"
-                ) AS Order_Marks,
-                (
-                    SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND qe.qtype="ddmarker"
-                ) AS DD_Marks,
-                (
-                    SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND qe.qtype="truefalse"
-                ) AS TF_Marks,
-                (
-                    SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND qe.qtype="numerical"
-                ) AS Numerical_Marks,
-                (
-                    SELECT SUM(qe.defaultmark)
-                    FROM mdl_question qe INNER JOIN mdl_quiz_slots qs on qs.questionid=qe.id
-                    WHERE qs.quizid=q.id AND (qe.qtype!="multichoice" AND qe.qtype!="essay" AND qe.qtype="order" AND qe.qtype="ddmarker" and qe.qtype="numerical") 
-                ) AS Other_Marks              
+                    FROM {question} qe INNER JOIN {quiz_slots} qs on qs.questionid=qe.id
+                    WHERE qs.quizid=q.id AND qe.qtype='".$key."'
+                ) AS Other_Type_Questions_Marks,";
+    }
+}
+$main_sql.='c.id as id   
             FROM 
-                mdl_course c INNER JOIN mdl_quiz q 
+                {course} c INNER JOIN {quiz} q 
                 ON 
                     q.course=c.id
             WHERE 
                 c.id=? and q.id=?';
-// echo 
 $Title="Question Weightage Report";
 // $filter = optional_param('filter', all_courses, PARAM_INT);
 $PAGE->requires->css("/report/customreports/css/bootstrap.min.css",true);
@@ -90,6 +77,7 @@ echo "<h3><b> &emsp;".$Title."</b></h3>";
 
         $mform = new filter_form1();
         $mform->display();
+// var_dump($main_sql);
         if ($form_data = $mform->get_data()){
                 $record=array();
                 $quizes=array();
@@ -152,6 +140,8 @@ echo "<h3><b> &emsp;".$Title."</b></h3>";
                             $keys=array_keys(get_object_vars($results[array_keys($results)[0]]));#asigning table headers
                             $key=array_search("id", $keys);
                             unset($keys[$key]);
+                            $key=array_search("q", $keys);
+                            unset($keys[$key]);
                             array_push($headder,"Sno");
                             foreach ($keys as $key) {
                                 array_push($headder,str_replace("_"," ",ucwords($key)));
@@ -165,7 +155,9 @@ echo "<h3><b> &emsp;".$Title."</b></h3>";
                                     $row[0]=$pos+1;
                                     if ($value!=NULL){
                                         if ($key!='id'){
-                                            array_push($row, $value);   
+                                            if ($key!='q') {
+                                                 array_push($row, $value);   
+                                             }   
                                         }    
                                     }
                                     else{

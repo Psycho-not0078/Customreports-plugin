@@ -17,7 +17,8 @@ function export_to_excel($Title,$Query,$params){
 						c.fullname 
 					from {course} c 
 					where c.id=?';
-		$cic_sql='SELECT CONCAT(u.firstname," ", u.lastname) as cic 
+		$cic_sql='SELECT 
+						CONCAT(u.firstname," ", u.lastname) as cic 
                   FROM {user} u INNER JOIN {role_assignments} ra 
                   		ON u.id = ra.userid 
                   INNER JOIN {user_enrolments} ue 
@@ -93,9 +94,20 @@ function export_to_excel($Title,$Query,$params){
     $results=$DB->get_records_sql($Query,$params);
    	$spos=6;
    	$alpha=range('A', 'Z');
-   	$headder=array_keys(get_object_vars($results[array_keys($results)[0]]));
+   	$keys=array_keys(get_object_vars($results[array_keys($results)[0]]));
+   	$headder=array();
+    $key=array_search("id", $keys);
+    unset($keys[$key]);
+    $key=array_search("q", $keys);
+    unset($keys[$key]);
+    array_push($headder,"Sno");
+    foreach ($keys as $key) {
+    	array_push($headder, $key);
+    }
    	for ($i = 0; $i < count($headder); $i++) {
-   		$worksheet->setCellValue($alpha[$i].'5',$headder[$i]);
+   		if ($headder[$i]!='id') {
+   			$worksheet->setCellValue($alpha[$i].'5',$headder[$i]);	
+   		}
    	}
    	foreach ($results as $key => $value) {
    		$i=1;
